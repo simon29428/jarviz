@@ -39,4 +39,4 @@ jobs:
         with:
           name: dist-without-markdown
           path: |
-            target/**/*.jar
+            target/*.jar
