@@ -34,19 +34,12 @@ public class JarClassLoaderServiceTest {
 
     @Test
     public void testMapClassInfoToShadowClass() throws IOException {
-        final ClassPath.ClassInfo classInfo =
-            ClassPath.from(Thread.currentThread().getContextClassLoader())
-                     .getTopLevelClasses("com.vrbo.jarviz.util.classloadertest")
-                     .stream()
-                     .filter(c -> MyTestClass1.class.getName().equals(c.getName()))
-                     .findAny()
-                     .orElseThrow(IllegalArgumentException::new);
+        final ClassPath.ClassInfo classInfo = ClassPath.from(Thread.currentThread().getContextClassLoader())
+                .getTopLevelClasses("com.vrbo.jarviz.util.classloadertest").stream()
+                .filter(c -> MyTestClass1.class.getName().equals(c.getName())).findAny().orElseThrow(IllegalArgumentException::new);
 
-        final ShadowClass expectedShadowClass =
-            new ShadowClass.Builder()
-                .className(classInfo.getName())
-                .classBytes(classInfo.asByteSource().read())
-                .build();
+        final ShadowClass expectedShadowClass = new ShadowClass.Builder().className(classInfo.getName())
+                .classBytes(classInfo.asByteSource().read()).build();
 
         assertThat(mapClassInfoToShadowClass(classInfo)).isEqualTo(expectedShadowClass);
     }
@@ -57,9 +50,4 @@ public class JarClassLoaderServiceTest {
         assertThat(fileNameToFileProtocol("file:fooBar")).isEqualTo("file:fooBar");
     }
 
-    @Test
-    public void testFileNameToJarPrefix() {
-        assertThat(fileNameToJarPrefix("fooBar")).isEqualTo("jar:file:fooBar!");
-        assertThat(fileNameToJarPrefix("file:fooBar")).isEqualTo("jar:file:fooBar!");
-    }
 }

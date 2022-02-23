@@ -17,6 +17,7 @@
 package com.vrbo.jarviz.service;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -33,46 +34,30 @@ public class MavenArtifactDiscoveryServiceIT {
     @Before
     public void setup() {
         artifactDiscoveryService = new MavenArtifactDiscoveryService(
-            new JarvizConfig.Builder()
-                .artifactDirectory("/tmp/jarviz/artifacts")
-                .continueOnMavenError(false)
-                .build());
+                new JarvizConfig.Builder().artifactDirectory("/tmp/jarviz/artifacts").continueOnMavenError(false).build());
     }
 
     @Test
     public void testDiscoverArtifact_Success() throws ArtifactNotFoundException {
-        final Artifact artifact = new Artifact.Builder()
-                                      .groupId("org.ow2.asm")
-                                      .artifactId("asm")
-                                      .version("7.1")
-                                      .build();
-        final File file = artifactDiscoveryService.discoverArtifact(artifact);
+        final Artifact artifact = new Artifact.Builder().groupId("org.ow2.asm").artifactId("asm").version("7.1").build();
+        final Path file = artifactDiscoveryService.discoverArtifact(artifact);
         assertThat(file).exists();
     }
 
     @Test(expected = ArtifactNotFoundException.class)
     public void testDiscoverArtifact_Fail() throws ArtifactNotFoundException {
-        final Artifact artifact = new Artifact.Builder()
-                                      .groupId("__my_invalid_group__")
-                                      .artifactId("__my_invalid_artifact__")
-                                      .version("0")
-                                      .build();
+        final Artifact artifact = new Artifact.Builder().groupId("__my_invalid_group__").artifactId("__my_invalid_artifact__").version("0")
+                .build();
         artifactDiscoveryService.discoverArtifact(artifact);
     }
 
     @Test
     public void testDiscoverArtifact_WhenContinueOnMavenError_IsTrue() throws ArtifactNotFoundException {
         final MavenArtifactDiscoveryService artifactDiscoveryService2 = new MavenArtifactDiscoveryService(
-            new JarvizConfig.Builder()
-                .artifactDirectory("/tmp/jarviz/artifacts")
-                .continueOnMavenError(true)
-                .build());
-        final Artifact artifact = new Artifact.Builder()
-                                        .groupId("__my_invalid_group__")
-                                        .artifactId("__my_invalid_artifact__")
-                                        .version("0")
-                                        .build();
-        final File file = artifactDiscoveryService2.discoverArtifact(artifact);
+                new JarvizConfig.Builder().artifactDirectory("/tmp/jarviz/artifacts").continueOnMavenError(true).build());
+        final Artifact artifact = new Artifact.Builder().groupId("__my_invalid_group__").artifactId("__my_invalid_artifact__").version("0")
+                .build();
+        final Path file = artifactDiscoveryService2.discoverArtifact(artifact);
         assertThat(file).doesNotExist();
     }
 }

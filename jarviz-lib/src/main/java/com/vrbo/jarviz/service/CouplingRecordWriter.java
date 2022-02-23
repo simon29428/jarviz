@@ -35,7 +35,7 @@ import com.vrbo.jarviz.util.JsonUtils;
  */
 public class CouplingRecordWriter {
 
-    private enum TYPE {
+    private enum OutputType {
         CSV, JSONL
     }
 
@@ -46,19 +46,19 @@ public class CouplingRecordWriter {
     private CsvMapper mapper = new CsvMapper();
     private CsvSchema schema = mapper.schemaFor(CouplingRecord.class).withHeader();
     private SequenceWriter sequenceWriter;
-    private TYPE resultType = TYPE.JSONL;
+    private OutputType resultType = OutputType.JSONL;
 
     public CouplingRecordWriter(@Nonnull final String filePath) {
         this.filePath = filePath;
         if (this.filePath.endsWith("csv")) {
-            this.resultType = TYPE.CSV;
+            this.resultType = OutputType.CSV;
         }
     }
 
     public void writeResult(final CouplingRecord couplingRecord) {
-        if (resultType == TYPE.JSONL) {
+        if (resultType == OutputType.JSONL) {
             writeAsJson(couplingRecord);
-        } else if (resultType == TYPE.CSV) {
+        } else if (resultType == OutputType.CSV) {
             writeAsCsv(couplingRecord);
         }
     }

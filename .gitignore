@@ -29,3 +29,6 @@ pom.xml.releaseBackup
 # Ignore Jarviz generated files
 jarviz-result*
 jarviz_result*
+
+.checkstyle
+.factorypath
