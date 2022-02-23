@@ -17,10 +17,12 @@
 package com.vrbo.jarviz.service;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -53,9 +55,9 @@ public class MavenArtifactDiscoveryService implements ArtifactDiscoveryService {
     }
 
     @Override
-    public File discoverArtifact(final Artifact artifact) throws ArtifactNotFoundException {
-        final File file = new File(toFullPath(localRepoPath, artifact.toFileName()));
-        if (!file.exists()) {
+    public Path discoverArtifact(final Artifact artifact) throws ArtifactNotFoundException {
+        final Path file = Paths.get(toFullPath(localRepoPath, artifact.toFileName()));
+        if (!Files.exists(file)) {
             runMavenCopy(artifact);
         }
 
@@ -69,7 +71,7 @@ public class MavenArtifactDiscoveryService implements ArtifactDiscoveryService {
 
             final String stripVersionSwitch = artifact.isVersionLatestOrRelease() ? "true" : "false";
             final String mvnCommand = String.format("mvn dependency:copy -DoutputDirectory=%s -Dartifact=%s -Dmdep.stripVersion=%s",
-                                                    localRepoPath, artifactMavenId, stripVersionSwitch);
+                    localRepoPath, artifactMavenId, stripVersionSwitch);
             final Process process = Runtime.getRuntime().exec(mvnCommand);
             boolean failed = false;
 
@@ -84,12 +86,12 @@ public class MavenArtifactDiscoveryService implements ArtifactDiscoveryService {
             } else {
                 failed = true;
                 log.error("Maven command failed to execute in {} seconds: {}\n Consider increasing mavenTimeOutSeconds config value.",
-                          mavenTimeOutSeconds, mvnCommand);
+                        mavenTimeOutSeconds, mvnCommand);
             }
 
             if (failed && !continueOnMavenError) {
                 throw new ArtifactNotFoundException(
-                    String.format("Unable to fetch the artifact %s from Maven repository", artifactMavenId));
+                        String.format("Unable to fetch the artifact %s from Maven repository", artifactMavenId));
             }
 
             return process;

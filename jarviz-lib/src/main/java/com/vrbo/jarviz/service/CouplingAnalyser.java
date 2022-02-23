@@ -51,10 +51,8 @@ public class CouplingAnalyser {
      * @param filterConfig   The filters.
      * @param reportFile     File name for the report.
      */
-    public void start(final JarvizConfig jarvizConfig,
-                      final ApplicationSet applicationSet,
-                      final CouplingFilterConfig filterConfig,
-                      final String reportFile) {
+    public void start(final JarvizConfig jarvizConfig, final ApplicationSet applicationSet, final CouplingFilterConfig filterConfig,
+            final String reportFile) {
         final JarvizConfig config;
         if (jarvizConfig != null) {
             config = jarvizConfig;
@@ -91,10 +89,8 @@ public class CouplingAnalyser {
      * @param reportFile         File name for the report.
      * @return Coupling count for the application set.
      */
-    private int analyzeApplicationSet(final ApplicationSet appSet,
-                                      final CouplingFilterConfig filterConfig,
-                                      final ClassLoaderService classLoaderService,
-                                      final String reportFile) {
+    private int analyzeApplicationSet(final ApplicationSet appSet, final CouplingFilterConfig filterConfig,
+            final ClassLoaderService classLoaderService, final String reportFile) {
         log.info("Analyzing applicationSet");
         int appSetCouplingCount = 0;
 
@@ -103,8 +99,8 @@ public class CouplingAnalyser {
             appSetCouplingCount += analyzeApplication(appSet, application, filterConfig, classLoaderService, writer);
         }
 
-        log.info("ApplicationSet={}, TotalClassesAnalyzed={}, TotalCouplingsFound={}",
-                 appSet.getAppSetName(), applicationSetClassCount.get(), appSetCouplingCount);
+        log.info("ApplicationSet={}, TotalClassesAnalyzed={}, TotalCouplingsFound={}", appSet.getAppSetName(),
+                applicationSetClassCount.get(), appSetCouplingCount);
 
         writer.close();
         log.info("Couplings were saved to {}", reportFile);
@@ -121,11 +117,8 @@ public class CouplingAnalyser {
      * @param writer             Coupling record writer.
      * @return Coupling count for the application.
      */
-    private int analyzeApplication(final ApplicationSet appSet,
-                                   final Application app,
-                                   final CouplingFilterConfig filterConfig,
-                                   final ClassLoaderService classLoaderService,
-                                   final CouplingRecordWriter writer) {
+    private int analyzeApplication(final ApplicationSet appSet, final Application app, final CouplingFilterConfig filterConfig,
+            final ClassLoaderService classLoaderService, final CouplingRecordWriter writer) {
         log.info("Analyzing application: {}", app.getAppName());
         applicationClassCount.set(0);
         int appCouplingCount = 0;
@@ -136,8 +129,8 @@ public class CouplingAnalyser {
             appCouplingCount += analyzeArtifact(appSet, app, artifact, filterConfig, classLoaderService, writer);
         }
 
-        log.info("Application={}, TotalClassesAnalyzed={}, TotalCouplingsFound={}",
-                 app.getAppName(), applicationClassCount.get(), appCouplingCount);
+        log.info("Application={}, TotalClassesAnalyzed={}, TotalCouplingsFound={}", app.getAppName(), applicationClassCount.get(),
+                appCouplingCount);
 
         return appCouplingCount;
     }
@@ -152,12 +145,8 @@ public class CouplingAnalyser {
      * @param writer             Coupling record writer.
      * @return Coupling count for the artifact.
      */
-    private int analyzeArtifact(final ApplicationSet appSet,
-                                final Application app,
-                                final Artifact artifact,
-                                final CouplingFilterConfig filterConfig,
-                                final ClassLoaderService classLoaderService,
-                                final CouplingRecordWriter writer) {
+    private int analyzeArtifact(final ApplicationSet appSet, final Application app, final Artifact artifact,
+            final CouplingFilterConfig filterConfig, final ClassLoaderService classLoaderService, final CouplingRecordWriter writer) {
 
         final List<ShadowClass> classesFromJarClassLoader = classLoaderService.getAllClasses(artifact);
 
@@ -173,43 +162,31 @@ public class CouplingAnalyser {
         log.info("ClassCount={}, CouplingCount={}", classesFromJarClassLoader.size(), couplings.size());
 
         // Write the CouplingRecord as Json
-        couplings.stream()
-                 .map(c -> toCouplingRecord(appSet, app, artifact, c))
-                 .forEach(writer::writeAsJson);
+        couplings.stream().map(c -> toCouplingRecord(appSet, app, artifact, c)).forEach(writer::writeResult);
 
         return couplings.size();
     }
 
-    private static CouplingRecord toCouplingRecord(final ApplicationSet appSet,
-                                                   final Application app,
-                                                   final Artifact artifact,
-                                                   final MethodCoupling methodCoupling) {
-        return new CouplingRecord.Builder()
-                   .appSetName(appSet.getAppSetName().orElse(""))
-                   .applicationName(app.getAppName())
-                   .artifactFileName(artifact.toFileName())
-                   .artifactId(artifact.getArtifactId())
-                   .artifactGroup(artifact.getGroupId())
-                   .artifactVersion(artifact.getVersion())
-                   .sourceClass(methodCoupling.getSource().getClassName())
-                   .sourceMethod(methodCoupling.getSource().getMethodName())
-                   .targetClass(methodCoupling.getTarget().getClassName())
-                   .targetMethod(methodCoupling.getTarget().getMethodName())
-                   .build();
+    private static CouplingRecord toCouplingRecord(final ApplicationSet appSet, final Application app, final Artifact artifact,
+            final MethodCoupling methodCoupling) {
+        return new CouplingRecord.Builder().appSetName(appSet.getAppSetName().orElse("")).applicationName(app.getAppName())
+                .artifactFileName(artifact.toFileName()).artifactId(artifact.getArtifactId()).artifactGroup(artifact.getGroupId())
+                .artifactVersion(artifact.getVersion()).sourceClass(methodCoupling.getSource().getClassName())
+                .sourceMethod(methodCoupling.getSource().getMethodName()).targetClass(methodCoupling.getTarget().getClassName())
+                .targetMethod(methodCoupling.getTarget().getMethodName()).build();
     }
 
     private static String applicationSetToString(final ApplicationSet appSet) {
         final StringBuilder buf = new StringBuilder();
-        appSet.getApplications()
-              .forEach(app -> {
-                  buf.append(app.getAppName()).append(':').append('\n');
-                  app.getArtifacts().forEach(atf -> {
-                      buf.append("  ").append(atf.getArtifactId());
-                      buf.append(' ').append(atf.getBaseVersion().orElseGet(atf::getVersion));
-                      buf.append(' ').append(atf.getPackaging());
-                      buf.append('\n');
-                  });
-              });
+        appSet.getApplications().forEach(app -> {
+            buf.append(app.getAppName()).append(':').append('\n');
+            app.getArtifacts().forEach(atf -> {
+                buf.append("  ").append(atf.getArtifactId());
+                buf.append(' ').append(atf.getBaseVersion().orElseGet(atf::getVersion));
+                buf.append(' ').append(atf.getPackaging());
+                buf.append('\n');
+            });
+        });
 
         return buf.toString();
     }

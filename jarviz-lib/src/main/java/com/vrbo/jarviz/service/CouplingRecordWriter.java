@@ -22,23 +22,45 @@ import java.io.Writer;
 
 import javax.annotation.Nonnull;
 
+import com.fasterxml.jackson.databind.SequenceWriter;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.vrbo.jarviz.model.CouplingRecord;
 import com.vrbo.jarviz.util.JsonUtils;
 
 /**
- * Simple JSON blob writer for the {@link CouplingRecord}.
- * The resultant output will a newline-delimited JSON file (.jsonl).
- * This is not thread safe, should not be shared among multiple threads.
- * See http://jsonlines.org
+ * Simple JSON blob writer for the {@link CouplingRecord}. The resultant output
+ * will a newline-delimited JSON file (.jsonl). This is not thread safe, should
+ * not be shared among multiple threads. See http://jsonlines.org
  */
 public class CouplingRecordWriter {
+
+    private enum TYPE {
+        CSV, JSONL
+    }
 
     private final String filePath;
 
     private Writer writer = null;
 
+    private CsvMapper mapper = new CsvMapper();
+    private CsvSchema schema = mapper.schemaFor(CouplingRecord.class).withHeader();
+    private SequenceWriter sequenceWriter;
+    private TYPE resultType = TYPE.JSONL;
+
     public CouplingRecordWriter(@Nonnull final String filePath) {
         this.filePath = filePath;
+        if (this.filePath.endsWith("csv")) {
+            this.resultType = TYPE.CSV;
+        }
+    }
+
+    public void writeResult(final CouplingRecord couplingRecord) {
+        if (resultType == TYPE.JSONL) {
+            writeAsJson(couplingRecord);
+        } else if (resultType == TYPE.CSV) {
+            writeAsCsv(couplingRecord);
+        }
     }
 
     /**
@@ -46,7 +68,7 @@ public class CouplingRecordWriter {
      *
      * @param couplingRecord The coupling record.
      */
-    public void writeAsJson(final CouplingRecord couplingRecord) {
+    private void writeAsJson(final CouplingRecord couplingRecord) {
         if (writer == null) {
             openFileStream();
         }
@@ -54,6 +76,18 @@ public class CouplingRecordWriter {
         try {
             writer.write(JsonUtils.toJsonString(couplingRecord));
             writer.write('\n');
+        } catch (IOException e) {
+            throw new IllegalStateException(String.format("Unable to generate CouplingRecord file: %s", filePath), e);
+        }
+    }
+
+    private void writeAsCsv(final CouplingRecord couplingRecord) {
+        try {
+            if (writer == null) {
+                openFileStream();
+                sequenceWriter = mapper.writer(schema).writeValues(writer);
+            }
+            sequenceWriter.write(couplingRecord);
         } catch (IOException e) {
             throw new IllegalStateException(String.format("Unable to generate CouplingRecord file: %s", filePath), e);
         }
@@ -69,7 +103,8 @@ public class CouplingRecordWriter {
     }
 
     /**
-     * Closes the underlying file stream and return a boolean to indicate if the operation was successful.
+     * Closes the underlying file stream and return a boolean to indicate if the
+     * operation was successful.
      *
      * @return Indicates if the close operation was successful.
      */

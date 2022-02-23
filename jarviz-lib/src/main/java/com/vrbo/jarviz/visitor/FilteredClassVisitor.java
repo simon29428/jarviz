@@ -59,23 +59,23 @@ public class FilteredClassVisitor extends ClassVisitor {
     }
 
     /**
-     * This will scan this class and visit all the method contents to scan for dependencies.
+     * This will scan this class and visit all the method contents to scan for
+     * dependencies.
      */
     public void visit() {
         reader.accept(this, 0);
     }
 
     @Override
-    public MethodVisitor visitMethod(final int access,
-                                     final String name,
-                                     final String descriptor,
-                                     final String signature,
-                                     final String[] exceptions) {
+    public MethodVisitor visitMethod(final int access, final String name, final String descriptor, final String signature,
+            final String[] exceptions) {
         final MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
-        final Method method = new Method.Builder()
-                                  .className(className)
-                                  .methodName(name)
-                                  .build();
+        final Method method = new Method.Builder().className(className).methodName(name).build();
         return new FilteredMethodVisitor(method, methodVisitor, collect);
+    }
+
+    @Override
+    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        super.visit(version, access, name, signature, superName, interfaces);
     }
 }

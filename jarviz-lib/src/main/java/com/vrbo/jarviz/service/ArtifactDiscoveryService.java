@@ -16,11 +16,11 @@
 
 package com.vrbo.jarviz.service;
 
-import java.io.File;
+import java.nio.file.Path;
 
 import com.vrbo.jarviz.model.Artifact;
 
 public interface ArtifactDiscoveryService {
 
-    File discoverArtifact(final Artifact artifact) throws ArtifactNotFoundException;
+    Path discoverArtifact(final Artifact artifact) throws ArtifactNotFoundException;
 }
