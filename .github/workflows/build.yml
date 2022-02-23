@@ -4,13 +4,8 @@ defaults:
   run:
     shell: bash
 
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+on: 
+  workflow_dispatch
 jobs:
   build_java:
     name: Build Java module
