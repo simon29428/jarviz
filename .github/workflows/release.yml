@@ -30,16 +30,8 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ env.cache-name }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-      - name: Import GPG signing key
-        run: echo ${{ secrets.JARVIZ_GPG_PRIVATE_KEY }} | base64 --decode | gpg --import --batch --no-tty --yes
       - name: Run release script for Java
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          GPG_KEY_NAME: ${{ secrets.JARVIZ_GPG_KEY_NAME }}
-          GPG_PASSPHRASE: ${{ secrets.JARVIZ_GPG_PASSPHRASE }}
         run: |
-          export GPG_TTY=$(tty)
           echo "Releasing jarviz-lib for $GITHUB_REF"
           mvn package
       - name: Archive production artifacts
