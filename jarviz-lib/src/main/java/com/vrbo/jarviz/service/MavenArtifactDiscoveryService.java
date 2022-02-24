@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -70,7 +71,9 @@ public class MavenArtifactDiscoveryService implements ArtifactDiscoveryService {
             log.info("Maven: fetching artifact {}", artifactMavenId);
 
             final String stripVersionSwitch = artifact.isVersionLatestOrRelease() ? "true" : "false";
-            final String mvnCommand = String.format("mvn dependency:copy -DoutputDirectory=%s -Dartifact=%s -Dmdep.stripVersion=%s",
+            final String os = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
+            final String mvnName = os.indexOf("win") >= 0 ? "mvn.cmd" : "mvn";
+            final String mvnCommand = String.format("%s dependency:copy -DoutputDirectory=%s -Dartifact=%s -Dmdep.stripVersion=%s", mvnName,
                     localRepoPath, artifactMavenId, stripVersionSwitch);
             final Process process = Runtime.getRuntime().exec(mvnCommand);
             boolean failed = false;
