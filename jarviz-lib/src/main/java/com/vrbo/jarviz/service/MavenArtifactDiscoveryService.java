@@ -72,7 +72,7 @@ public class MavenArtifactDiscoveryService implements ArtifactDiscoveryService {
 
             final String stripVersionSwitch = artifact.isVersionLatestOrRelease() ? "true" : "false";
             final String os = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
-            final String mvnName = os.indexOf("win") >= 0 ? "mvn.cmd" : "mvn";
+            final String mvnName = os.contains("win") ? "mvn.cmd" : "mvn";
             final String mvnCommand = String.format("%s dependency:copy -DoutputDirectory=%s -Dartifact=%s -Dmdep.stripVersion=%s", mvnName,
                     localRepoPath, artifactMavenId, stripVersionSwitch);
             final Process process = Runtime.getRuntime().exec(mvnCommand);

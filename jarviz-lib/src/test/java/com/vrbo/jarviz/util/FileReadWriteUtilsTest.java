@@ -16,31 +16,20 @@
 
 package com.vrbo.jarviz.util;
 
+import static com.vrbo.jarviz.util.FileReadWriteUtils.toFullPath;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 import java.io.File;
 
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
-import static com.vrbo.jarviz.util.FileReadWriteUtils.toFullPath;
-
 public class FileReadWriteUtilsTest {
-
-    @Test
-    public void testToFullPath() {
-        assertThat(toFullPath("/tmp/jarviz/jars", "fooBar123.jar"))
-            .isEqualTo("/tmp/jarviz/jars" + File.separator + "fooBar123.jar");
-
-        assertThat(toFullPath("/tmp/jarviz/jars/", "fooBar123.jar"))
-            .isEqualTo("/tmp/jarviz/jars" + File.separator + "fooBar123.jar");
-    }
 
     @Test
     public void testToFullPath_ValidationFailure() {
         final String oneLevelUp = File.separator + ".." + File.separator;
 
         assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() -> toFullPath("/tmp/jarviz/jars", oneLevelUp + "fooBar123.jar"));
+                .isThrownBy(() -> toFullPath("/tmp/jarviz/jars", oneLevelUp + "fooBar123.jar"));
     }
 }
