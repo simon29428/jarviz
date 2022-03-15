@@ -16,6 +16,13 @@
 
 package com.vrbo.jarviz.service;
 
+import com.google.common.collect.ImmutableList;
+import com.vrbo.jarviz.config.JarvizConfig;
+import com.vrbo.jarviz.model.Artifact;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,16 +32,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.ImmutableList;
-import com.vrbo.jarviz.config.JarvizConfig;
-import com.vrbo.jarviz.model.Artifact;
 
 import static com.vrbo.jarviz.util.FileReadWriteUtils.toFullPath;
 
@@ -74,12 +73,18 @@ public class MavenArtifactDiscoveryService implements ArtifactDiscoveryService {
             final String os = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
             final String mvnName = os.contains("win") ? "mvn.cmd" : "mvn";
             final String mvnCommand = String.format("%s dependency:copy -DoutputDirectory=%s -Dartifact=%s -Dmdep.stripVersion=%s", mvnName,
-                    localRepoPath, artifactMavenId, stripVersionSwitch);
+                localRepoPath, artifactMavenId, stripVersionSwitch);
             final Process process = Runtime.getRuntime().exec(mvnCommand);
             boolean failed = false;
 
+            ForkJoinPool.commonPool().submit(() -> {
+                try {
+                    drainInputStream(process.getInputStream()).forEach(s -> log.info("{}", s));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
             if (process.waitFor(mavenTimeOutSeconds, TimeUnit.SECONDS)) {
-                drainInputStream(process.getInputStream()).forEach(s -> log.info("{}", s));
                 if (process.exitValue() != 0) {
                     failed = true;
                     // In case, there is an error, let's log and throw exception
@@ -89,12 +94,12 @@ public class MavenArtifactDiscoveryService implements ArtifactDiscoveryService {
             } else {
                 failed = true;
                 log.error("Maven command failed to execute in {} seconds: {}\n Consider increasing mavenTimeOutSeconds config value.",
-                        mavenTimeOutSeconds, mvnCommand);
+                    mavenTimeOutSeconds, mvnCommand);
             }
 
             if (failed && !continueOnMavenError) {
                 throw new ArtifactNotFoundException(
-                        String.format("Unable to fetch the artifact %s from Maven repository", artifactMavenId));
+                    String.format("Unable to fetch the artifact %s from Maven repository", artifactMavenId));
             }
 
             return process;
